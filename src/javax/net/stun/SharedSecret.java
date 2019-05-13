@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Shared Secret optained from the STUN server by the @{linkStunClient#getSharedSecret} method.
+ * Shared Secret obtained from the STUN server by the @{linkStunClient#getSharedSecret} method.
  * 
  * @author Henrik Baastrup
  */
@@ -33,7 +33,7 @@ public class SharedSecret {
     private String errorMessage = null;
 
     /**
-     * Cerator used with sucessfuly response from the STUN server.
+     * Creator used with successfully response from the STUN server.
      * @param username
      * @param password
      */
@@ -55,8 +55,7 @@ public class SharedSecret {
 
     /**
      * Creator used with error response from the STUN server.
-     * @param code
-     * @param message
+     * @param attribute
      */
     public SharedSecret(final MessageAttribute attribute) {
         if (attribute.getType()!=MessageAttribute.MessageAttributeType.ERROR_CODE) return;

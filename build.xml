@@ -1,74 +1,160 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- You may freely edit this file. See commented blocks below for -->
-<!-- some examples of how to customize the build. -->
-<!-- (If you delete it and reopen the project it will be recreated.) -->
-<!-- By default, only the Clean and Build commands use this build script. -->
-<!-- Commands such as Run, Debug, and Test only use this build script if -->
-<!-- the Compile on Save feature is turned off for the project. -->
-<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
-<!-- in the project's Project Properties dialog box.-->
-<project name="STUN" default="default" basedir=".">
+
+<project name="STUN" default="jar" basedir=".">
     <description>Builds, tests, and runs the project STUN.</description>
-    <import file="nbproject/build-impl.xml"/>
-    <!--
+	
+	<property name="project.name" value="STUN" />
+	<property name="build.dir" location="./build" />
+	<property name="build.classes.dir" location="${build.dir}/classes" />
+	<property name="build.test.dir" location="${build.dir}/test" />
+	
+	<property name="dist.dir" location="dist" />
+	<property name="dist.jar" value="${dist.dir}/stun.jar" />
+	<property name="dist.lib.dir" location="${dist.dir}/lib" />
+	<property name="dist.javadoc.dir" location="${dist.dir}/javadoc" />
+	
+	<property name="javac.source" value="1.6" />
+	<property name="javac.target" value="1.6" />
+	<property name="build.max.memmemory" value="512m" />
+	
+	<property name="src.dir" location="src" />
+	<property name="test.dir" location="test" />
+	<property name="lib.dir" location="lib" />
+	
+	<property name="manifest.file" value="manifest.mf" />
+	<property name="meta.inf.dir" location="${src.dir}/META-INF" />
+	
+	<property name="javadoc.author" value="Henrik Baastrup" />
+	<property name="javadoc.encoding.used" value="UTF-8" />
+	<property name="javadoc.version" value="false" />
+	<property name ="javadoc.additionalparam" value="" />
+	
+	<target name="init">
+		<path id="run.classpath">
+		</path>
+		
+		<path id="javac.classpath">
+		</path>
+		
+		<path id="javac.testpath">
+			<pathelement path="${toString:javac.classpath}" />
+			<pathelement path="${build.classes.dir}"/>
+			<pathelement path="${dist.lib.dir}/junit-4.5.jar"/>
+		</path>
+		
+		<path id="run.testpath">
+			<pathelement path="${toString:javac.testpath}" />
+			<pathelement path="${build.test.dir}"/>
+		</path>
+	</target>
+	
+	
+	<target name="clean" depends="init" description="Clean-up before build">
+		<mkdir dir="${build.classes.dir}"/>
+	  	<delete includeemptydirs="yes" failonerror="false">
+	  	   	<fileset dir="${build.classes.dir}">
+	           	<include name="**/*.class"/>
+	           	<include name="**/*.java"/>
+	           	<exclude name="**/.svn"/>
+	  	    </fileset>
+	 	</delete>
+	  	<mkdir dir="${build.classes.dir}"/>
 
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
+	  	<delete includeemptydirs="yes" failonerror="false">
+	  	   	<fileset dir="${build.test.dir}">
+	           	<include name="**/*.class"/>
+	           	<exclude name="**/.svn"/>
+	  	    </fileset>
+	 	</delete>
+		
+	  	<mkdir dir="${dist.javadoc.dir}"/>
+	  	<delete includeemptydirs="yes"  failonerror="false">
+			<fileset dir="${dist.javadoc.dir}"/>
+	 	</delete>
+	  	<mkdir dir="${dist.javadoc.dir}"/>
 
-      -pre-init:                 called before initialization of project properties
-      -post-init:                called after initialization of project properties
-      -pre-compile:              called before javac compilation
-      -post-compile:             called after javac compilation
-      -pre-compile-single:       called before javac compilation of single file
-      -post-compile-single:      called after javac compilation of single file
-      -pre-compile-test:         called before javac compilation of JUnit tests
-      -post-compile-test:        called after javac compilation of JUnit tests
-      -pre-compile-test-single:  called before javac compilation of single JUnit test
-      -post-compile-test-single: called after javac compilation of single JUunit test
-      -pre-jar:                  called before JAR building
-      -post-jar:                 called after JAR building
-      -post-clean:               called after cleaning build products
+		<delete failonerror="false">
+			<fileset dir="${dist.dir}" />
+		</delete>
+	</target>
+	
+	
+	<target name="compile" depends="clean" description="Compile the source ">
+		<javac srcdir="${src.dir}" destdir="${build.classes.dir}" fork="yes"
+		       memoryMaximumSize="${build.max.memmemory}" verbose="yes" 
+			   source="${javac.source}" target="${javac.target}"
+			   debug="true">
+			<classpath refid="javac.classpath" />
+		</javac>
+	</target>
+	
+	
+	<target name="javadoc" depends="compile" description="Build the Java documentation">
+		<mkdir dir="${dist.javadoc.dir}"/>
+		<javadoc additionalparam="${javadoc.additionalparam}" author="${javadoc.author}"
+		         charset="UTF-8" destdir="${dist.javadoc.dir}" docencoding="${javadoc.encoding.used}" 
+		         encoding="${javadoc.encoding.used}" failonerror="true" 
+		         source="${javac.source}" splitindex="true" use="true" useexternalfile="true" 
+		         version="${javadoc.version}">
+            <classpath>
+                <path path="${javac.classpath}"/>
+            </classpath>
+            <fileset dir="${src.dir}">
+                <filename name="**/*.java"/>
+            </fileset>
+		</javadoc>
+	</target>
+	
+	
+	<target name="jar" depends="javadoc" description="Build the jar ">
+		<jar jarfile="${dist.jar}" manifest="${manifest.file}">
+			<fileset dir="${build.classes.dir}">
+				<include name="**/*.class"/>
+				<include name="**/*.properties"/>
+				<include name="**/META-INF/*"/>
+				<include name="${manifest.file}"/>
+			</fileset>
+		</jar>
+		
+		<copy todir="${dist.dir}/lib">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	
+	<target name="compile-test" depends="jar" description="Compile unit tests" >
+		<javac srcdir="${test.dir}" destdir="${build.test.dir}" fork="yes"
+		       memoryMaximumSize="${build.max.memmemory}" verbose="yes" 
+			   source="${javac.source}" target="${javac.target}"
+			   debug="true">
+			<classpath refid="javac.testpath" />
+		</javac>
+	</target>
 
-    (Targets beginning with '-' are not intended to be called on their own.)
+	<target name="test" depends="compile-test" description="Run unit tests">
+		<junit fork="yes" haltonfailure="yes">
+			<test name="javax.net.stun.StunClientTest">
+				<formatter type="plain"  usefile="false"/>
+			</test>
+			<test name="javax.net.stun.dns.DMessageTest">
+				<formatter type="plain"  usefile="false"/>
+			</test>
+			<test name="javax.net.stun.dns.DNSResolverTest">
+				<formatter type="plain"  usefile="false"/>
+			</test>
 
-    Example of inserting an obfuscator after compilation could look like this:
+			<test name="javax.net.stun.services.BindingServiceTest">
+				<formatter type="plain"  usefile="false"/>
+			</test>
 
-        <target name="-post-compile">
-            <obfuscate>
-                <fileset dir="${build.classes.dir}"/>
-            </obfuscate>
-        </target>
+			<test name="javax.net.stun.services.SharedSecretServiceTest">
+				<formatter type="plain"  usefile="false"/>
+			</test>
+			<classpath refid="run.testpath" />
+		</junit>
+	</target>
+	
 
-    For list of available properties check the imported 
-    nbproject/build-impl.xml file. 
-
-
-    Another way to customize the build is by overriding existing main targets.
-    The targets of interest are: 
-
-      -init-macrodef-javac:     defines macro for javac compilation
-      -init-macrodef-junit:     defines macro for junit execution
-      -init-macrodef-debug:     defines macro for class debugging
-      -init-macrodef-java:      defines macro for class execution
-      -do-jar-with-manifest:    JAR building (if you are using a manifest)
-      -do-jar-without-manifest: JAR building (if you are not using a manifest)
-      run:                      execution of project 
-      -javadoc-build:           Javadoc generation
-      test-report:              JUnit report generation
-
-    An example of overriding the target for project execution could look like this:
-
-        <target name="run" depends="STUN-impl.jar">
-            <exec dir="bin" executable="launcher.exe">
-                <arg file="${dist.jar}"/>
-            </exec>
-        </target>
-
-    Notice that the overridden target depends on the jar target and not only on 
-    the compile target as the regular run target does. Again, for a list of available 
-    properties which you can use, check the target you are overriding in the
-    nbproject/build-impl.xml file. 
-
-    -->
 </project>

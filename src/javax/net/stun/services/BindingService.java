@@ -260,11 +260,11 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
     /**
      * Will set the address use in a Change Request. The default value is the local address
      * set in the creator. This is usefull if the server is behind a NAT.
-     * @param arg0
+     * @param address
      */
-    public void setPublicAddress(InetAddress arg0) {publicAddress = arg0;}
+    public void setPublicAddress(InetAddress address) {publicAddress = address;}
 
-    public void setDebug(boolean arg0) {debug = arg0;}
+    public void setDebug(boolean on) {debug = on;}
 
 
 

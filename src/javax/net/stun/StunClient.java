@@ -35,13 +35,13 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
- * This class implement a STUN client as descriped in RFC 3489.
+ * This class implement a STUN client as described in RFC 3489.
  *
  * @author Henrik Baastrup
  */
 public class StunClient {
     /**
-     * Values to discripe the test passed under the {@link StunClient#binding} method
+     * Values to describe the test passed under the {@link StunClient#binding} method
      */
     public enum DoneBindingTest {
         NO_TEST,
@@ -67,14 +67,13 @@ public class StunClient {
 
     /**
      * Default Creator
-     * @param address
      */
     public StunClient() {
     }
 
     /**
      * Creator
-     * @param address for the STUN server (dafult prot used is 3478).
+     * @param address for the STUN server (default port used is 3478).
      */
     public StunClient(String address) {
         this.serverAddress = address;
@@ -82,7 +81,7 @@ public class StunClient {
 
     /**
      * Creator
-     * @param address for the STUN srever.
+     * @param address for the STUN server.
      * @param port used to connect to the STUN server.
      */
     public StunClient(String address, int port) {
@@ -92,10 +91,9 @@ public class StunClient {
 
     /**
      *
-     * @param domainAddress ex
+     * @param domainAddress
      * @param dnsServer
-     * @return an array of StunServerAddress in priotated order
-     * @throws IOException
+     * @return an array of StunServerAddress in priority order
      */
     public static StunServerAddress[] discovery(String domainAddress, String dnsServer) {
         DNSResolver resolver = new DNSResolver(dnsServer);
@@ -136,9 +134,8 @@ public class StunClient {
     }
 
     /**
-     * Ask the STUN server for a sgared secret if pocible.
-     * @return {@link SharedSecret} if the process suceed else null.
-     * @throws IOException
+     * Ask the STUN server for a shared secret if possible.
+     * @return {@link SharedSecret} if the process succeed else null.
      */
     public SharedSecret getSharedSecret() {
         SSLSocket sslSocket = null;
@@ -253,7 +250,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
      *  }</pre>
      *
      * @param sharedSecret found in the @{link getSharedSecret} method or null if no secret was found or used.
-     * @return @{link DiscoveryInfo} contining the informations from the STUN server found by the process
+     * @return {@link DiscoveryInfo} containing the informations from the STUN server found by the process
      */
     public DiscoveryInfo binding(SharedSecret sharedSecret) {
         DiscoveryInfo discoveryInfo = new DiscoveryInfo();
@@ -270,10 +267,10 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
 
     /**
      * This method will only do the first test in the binding process, and is
-     * usefull if one only is intrested in finding the remote address of the
-     * client, and not the senario.
+     * useful if one only is interested in finding the remote address of the
+     * client, and not the scenario.
      *
-     * @param sharedSecret @{link SharedSecret} found in @{link getSharedSecret} method or null.
+     * @param sharedSecret {@link SharedSecret} found in {@link getSharedSecret} method or null.
      * @return DiscoveryInfo that contain the remote address value.
      */
     public DiscoveryInfo bindForRemoteAddressOnly(SharedSecret sharedSecret) {
