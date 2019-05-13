@@ -15,7 +15,7 @@ The STUN project contains a Ant script file (build-ant.xml) and it should be eno
 
 ### Client examples
 The below example shows a full client discovery scenario, using DNS Discovery and Shared Secret:  
-`
+```
 String domain = "xten.net";
 String dnsServerAddr = "64.69.76.5";
 
@@ -54,9 +54,9 @@ if (info.getErrorCode()==0) {
 	}
 	System.out.println(info);
 }
-`
+```
 Many time an application only needs it's public Internet address and the STUN server is know and does not use Shared Secret, such a client might look like this:
-`
+```
 StunClient client = new StunClient("stun.counterpath.com");
 DiscoveryInfo info = client.bindForRemoteAddressOnly(null);
 if (info.getErrorCode()!=0) {
@@ -65,14 +65,14 @@ if (info.getErrorCode()!=0) {
 else {
 	String publicAddress = info.getPublicIpAddress();
 }
-`
+```
 **NOTE:** If the client need to work with a STUN server there support Shared Secret, the client needs a key-store containing the CA certificate for the server.
 
 ### Server example
 **NOTE:** The server API is still under development and the interface might change over time.  
 Below is a server there user Shared Secret but can only give the public Internet address to a client. it is not able to answer the client with a full NAT scenario as there is only used one IP address. To discover a full NAT scenario there need be two STUN servers with different IP addresses, each server listen on two different ports.  
 As the project in this moment does not contain a method to change user and password with the Shared Secret service it is not jet possible to implement that.  
-`
+```
 SharedSecretService ssService = new SharedSecretService();
 File keyStoreFile = new File("StunTest.jks"); //Key-store file
 ssService.setKeyStore(keyStoreFile, "henriksp".toCharArray(), "henrikkp".toCharArray());
@@ -94,6 +94,6 @@ finally {
 	ssService.stopThread();
 	bService.stopThread();
 }
-`
+```
 **NOTE:** If you plan to make a server there support Shared Secret, you need a key-store containg a certificate for your server. This certificate can either be signed by a CA or a self signed certificate. In any case all the clients there connect to your server needs the certificate of the signer. The reason for this is that the Shared Secret is obtained over SSL.  
 You can use the Java [keytool](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html) program to create a key-store. If you only need a self signed certificate you can distribute this key-store with all you clients.
