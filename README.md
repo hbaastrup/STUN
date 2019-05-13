@@ -13,7 +13,8 @@ STUN is an Internet standard described in [RFC 3489](https://www.ietf.org/rfc/rf
 ## How to start
 ### How to build the Project
 Download the latest source.  
-The STUN project contains a Ant script file (build-ant.xml) and it should be enough to lunch "ant -f build-ant.xml" in the project's home directory. This will produce the directory "dist" there contains the library file "stun.jar". Include this file in your project there need to implement STUN. "stun.jar" does not depend on any other libraries.
+The STUN project contains a Ant script file (build-ant.xml) and it should be enough to lunch "ant -f build-ant.xml" in the project's home directory. This will produce the directory "dist" there contains the library file "stun.jar". Include this file in your project there need to implement STUN. "stun.jar" does not depend on any other libraries.  
+"stun.jar" will run as a STUN client if executed like ```java -jar stun.jar```. Use the ```-h``` option to see possible other options.
 
 ### Client examples
 The below example shows a full client discovery scenario, using DNS Discovery and Shared Secret:  
