@@ -60,8 +60,8 @@ if (info.getErrorCode()==0) {
 ```
 Many time an application only needs it's public Internet address and the STUN server is know and does not use Shared Secret, such a client might look like this:
 ```
-StunClient client = new StunClient("stun.counterpath.com");
-DiscoveryInfo info = client.bindForRemoteAddressOnly(null);
+StunClient client = new StunClient("stun.l.google.com", 19302);
+DiscoveryInfo info = client.binding(null);
 if (info.getErrorCode()!=0) {
 	System.out.println("ERROR: "+info.getErrorMessage());
 }
