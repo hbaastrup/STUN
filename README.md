@@ -2,6 +2,8 @@
 Simple Traversal of User Datagram Protocol (UDP) Through Network Address Translators (NATs) 
 
 ## Introduction
+This project was originally a part of the Java incubator (javax), but disappeared when Oracle moved there repository from OpenJava.  
+  
 [STUN](https://en.wikipedia.org/wiki/STUN) is a technique (protocol) there allow an application behind a Network Address Translators ([NAT](https://en.wikipedia.org/wiki/Network_address_translation)) Firewall to discover its public Internet address and the type of the NAT scenario used between the application and the Internet.  
 STUN is typically used in communication applications there need to inter connect. This is done by communicate the public Internet address to the other part, but before an application can communicate it's address, it need to discover it and can use STUN to do that.  
 STUN use a client/server scenario and the goal of this project is to implement a client API there are easy to use, plus the necessary classes to set-up a server.  
@@ -11,7 +13,8 @@ STUN is an Internet standard described in [RFC 3489](https://www.ietf.org/rfc/rf
 ## How to start
 ### How to build the Project
 Download the latest source.  
-The STUN project contains a Ant script file (build-ant.xml) and it should be enough to lunch "ant -f build-ant.xml" in the project's home directory. This will produce the directory "dist" there contains the library file "stun.jar". Include this file in your project there need to implement STUN. "stun.jar" does not depend on any other libraries.
+The STUN project contains a Ant script file (build-ant.xml) and it should be enough to lunch "ant -f build-ant.xml" in the project's home directory. This will produce the directory "dist" there contains the library file "stun.jar". Include this file in your project there need to implement STUN. "stun.jar" does not depend on any other libraries.  
+"stun.jar" will run as a STUN client if executed like ```java -jar stun.jar```. Use the ```-h``` option to see possible other options.
 
 ### Client examples
 The below example shows a full client discovery scenario, using DNS Discovery and Shared Secret:  
