@@ -1,0 +1,5 @@
+Mainfest-Version: 1.0
+Created-By: Henrik Baastrup
+Class-Path: 
+Main-Class: javax.net.stun.Main
+Implementation-Version: 1.0

@@ -1,0 +1,15 @@
+- Get the client tested against other Shared Secret servers.
+- Get the client tested in all existing NAT scenarios:
+  * Symmetric Firewall.
+  * Symmetric NAT
+  * Full Cone NAT (DONE).
+  * Restricted NAT.
+  * Port Restricted NAT (DONE).
+- Get the client tested with RESPONSE-ADDRESS attribute set to a
+  different addres than the origin.
+- Find a way for two Binding servers to pass response responsibility
+  (See TODO: in BindingService class).
+
+- Validate upgrading every thing to RFC 5389.
+- Validate including of Traversal Using Relay NAT (TURN) RFC 5766
+- Validate including of Interactive Connectivity Establishment (ICE) RFC 5245

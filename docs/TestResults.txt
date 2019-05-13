@@ -1,0 +1,10 @@
+Test results
+=============
+
+Accanto Systems:
+Last test was: test
+Noded natted:
+  Node is behind a Restricted Port NAT
+  with public IP address: 93.63.252.189
+  and local IP address: 192.168.226.6
+  

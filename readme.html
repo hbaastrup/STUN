@@ -1,0 +1,201 @@
+<html>
+<head>
+<title>STUN Read Me</title>
+<meta name="auther" content="Henrik Baastrup" />
+
+<style type="text/css">
+body {
+    font-family: "Lucida Grande", "Bitstream Vera Sans", "Verdana";
+    font-size: 13px;
+}
+</style>
+
+</head>
+
+<body>
+<center>
+<h1>STUN</h1>
+Simple Traversal of User Datagram Protocol (UDP) Through Network Address Translators (NATs)
+</center>
+<h3>Introduction</h3>
+<p><a href="http://en.wikipedia.org/wiki/STUN">STUN</a> is a technique (protocol) there allow an application behind a Network Address Translators (<a href="http://en.wikipedia.org/wiki/NAT">NAT</a>) Firewall to discover its public Internet address and the type of the NAT scenario used between the application and the Internet.<br>
+STUN is typically used in communication applications there need to inter connect. This is done by communicate the public Internet address to the other part, but before an application can communicate it's address, it need to discover it and can use STUN to do that.<br>
+STUN use a client/server scenario and the goal of this project is to implement a client API there are easy to use, plus the necessary classes to set-up a server.<br>
+The client can do SSL connection to implement the Shared Secret part of the standard (chapter 9.2). The client can also do DNS resolving to implement the Discovery part of the standard (chapter 9.1).<br>
+STUN is an Internet standard described in <a href="http://www.ietf.org/rfc/rfc3489.txt">RFC 3489</a><br>
+<br>
+If you want to try it out quickly, the project contain a main class there act as a STUN client. Build the project and run it with "java -jar stun.jar"<br>
+</p>
+
+<h3>Project Home page</h3>
+<p>
+<a href="http://java.net/projects/stun">http://java.net/projects/stun</a>
+</p>
+
+<h3>How to start</h3>
+<h4>How to build the Project</h4>
+<p>
+Download the latest source from the project's Subversion repository <a href="https://svn.java.net/svn/stun~svn/trunk">here</a><br>
+The STUN project contains a Ant script file (build-ant.xml) and it should be enough to lunch "ant -f build-ant.xml" in the project's home directory. This will produce the directory "dist" there contains the library file "stun.jar". Include this file in your project there need to implement STUN. "stun.jar" does not depend on any other libraries.
+</p>
+<h4>Client examples</h4>
+<p>
+The below example shows a full client discovery scenario, using DNS Discovery and Shared Secret:<br>
+</p>
+<pre>
+String domain = "xten.net";
+String dnsServerAddr = "64.69.76.5";
+
+//Set key-store to use with Shared Secret service.
+//Note: Shared Secret service use SSL so the client needs a key-store
+//with a Certification Autherity Certificate for the services.
+File keyStoreFile = new File("StunTest.jks"); //Key-store file
+System.setProperty("javax.net.ssl.trustStore", keyStoreFile.getAbsolutePath());
+System.setProperty("javax.net.ssl.trustStoreType", "JKS");
+
+//First ask the domain for any STUN servers know to the DNS server for the domain
+StunServerAddress stunServers[] = StunClient.discovery(domain, dnsServerAddr);
+if (stunServers.length==0) return; //The DNS server does not have any _stun._udp SRV records for the given domain. 
+
+//Try to bind to each server given by the DNS server
+DiscoveryInfo info;
+for (int i=0; i&lt;stunServers.length; i++) {
+	StunClient client = new StunClient(stunServers[i].address, stunServers[i].port);
+	//Ask for a Shared Secret
+	SharedSecret secret = client.getSharedSecret();
+	//Do binding (discovering)
+	info = client.binding(secret);
+	if (info.getErrorCode()!=0) {
+		//We got an error!Try the next server from the DNS.
+		System.out.println("ERROR: "+info.getErrorMessage());
+	}
+	else break; //We have a full binding!
+}
+
+if (info.getErrorCode()==0) {
+	//We have succeed the binding lets take a look at the result.
+	String publicAddress = info.getPublicIpAddress();
+	ConnectionScenario scenario = info.getScenarioState();
+	if (info.isNodeNated()) {
+		System.out.println("I'm NATted");
+	}
+	System.out.println(info);
+}
+</pre>
+<p>
+Many time an application only needs it's public Internet address and the STUN server is know and does not use Shared Secret, such a client might look like this:<br>
+</p>
+<pre>
+StunClient client = new StunClient("stun.counterpath.com");
+DiscoveryInfo info = client.bindForRemoteAddressOnly(null);
+if (info.getErrorCode()!=0) {
+	System.out.println("ERROR: "+info.getErrorMessage());
+}
+else {
+	String publicAddress = info.getPublicIpAddress();
+}
+</pre>
+<br>
+<p>
+<strong>NOTE:</strong> If the client need to work with a STUN server there support Shared Secret, the client needs a key-store containing the CA certificate for the server.
+</p>
+<h4>Server example</h4>
+<p>
+<strong>NOTE:</strong> The server API is still under development and the interface might change over time.<br>
+Below is a server there user Shared Secret but can only give the public Internet address to a client. it is not able to answer the client with a full NAT scenario as there is only used one IP address. To discover a full NAT scenario there need be two STUN servers with different IP addresses, each server listen on two different ports.<br>
+As the project in this moment does not contain a method to change user and password with the Shared Secret service it is not jet possible to implement that.
+</p>
+<pre>
+SharedSecretService ssService = new SharedSecretService();
+File keyStoreFile = new File("StunTest.jks"); //Key-store file
+ssService.setKeyStore(keyStoreFile, "henriksp".toCharArray(), "henrikkp".toCharArray());
+
+InetAddress loclahost = Utils.getLocalAddr();
+BindingService bService = new BindingService(loclahost, 0, null, 0, ssService);
+
+try {
+	ssService.startThread();
+	bService.startThread();
+	/*
+	 Wait for request to stop server
+	 .
+	 .
+	 .
+	 */
+}
+finally {
+	ssService.stopThread();
+	bService.stopThread();
+}
+</pre>
+<br>
+<p>
+<strong>NOTE:</strong> If you plan to make a server there support Shared Secret, you need a key-store containg a certificate for your server. This certificate can either be signed by a CA or a self signed certificate. In any case all the clients there connect to your server needs the certificate of the signer. The reason for this is that the Shared Secret is obtained over SSL.<br>
+You can use the Java <a href="http://java.sun.com/javase/6/docs/technotes/tools/solaris/keytool.html">keytool</a> program to create a key-store. If you only need a self signed certificate you can distribute this key-store with all you clients.
+</p>
+<!--
+<h3>Participation</h3>
+<p>This project may provide an opportunity for developers to participate in a 
+  variety of ways. If you are interested in participating please send an inquiry 
+  to the owner at owner@projectname.dev.java.net (replace "projectname" with the 
+  name of this project)</p>
+<p>If you are a member, you can see the current list of members <a href="servlets/ProjectMemberList">here</a></p>
+<p>If you are not a member, you can request membership to this project <a href="servlets/ProjectMembershipRequest">here</a>.</p>
+<h3>Mailing Lists:</h3>
+<p>If you wish to subscribe to one of this project's mailing lists, click <a href="servlets/ProjectMailingListList">here</a></p>
+<h3>Downloads</h3>
+<ul>
+  <li> To access the repository, click <a href="source/browse/">here</a> </li>
+  <li> Unversioned downloads, documentation, etc... is usually kept in the Docs 
+    & Files section. You can access the Docs & Files by clicking <a href="servlets/ProjectDocumentList">here</a> 
+  </li>
+</ul>
+<h3>Issues</h3>
+<p>To submit a project issue, or query existing issues, click <a href="servlets/ProjectIssues">here</a></p>
+<a name="OWNER"></a> 
+-->
+</body>
+</html>
+
+<!--
+<h3>For The Project Owner:</h3>
+<p>Congratulations on your new java.net project!</p>
+<p>You can edit your project page using the WYSIWYG editor or a Subversion client 
+  like NetBeans if your project uses Subversion.<br>
+  If your project uses CVS, then you can edit the project using a CVS client like 
+  NetBeans. For help editing your project, click <a href="https://knowledgesharing.dev.java.net/servlets/ProjectProcess?tab=1">here</a></p>
+<p>You can promote your project in the Java.net project catalog. Click <a href="http://www.java.net/projectowner">here</a> 
+  to view the list of projects in the catalog in which you are an owner</p>
+<p>For more help on editing and customizing your project page, click <a href="https://knowledgesharing.dev.java.net/alm-process/1-Project Set-Up/1-Configuration/Project Content Editor/">here</a></p>
+<p>You can find lots of helpful information on java.net to get your project started. 
+  Some of the things you will find in there include:</p>
+<ul>
+  <li>Hints on how to <a href="https://java-net.dev.java.net/ProjectPages.html#pages">set-up 
+    your project's</a> home page</li>
+  <li>Ideas on how to <a href="https://java-net.dev.java.net/ProjectPages.html#publicity">publicize 
+    your project</a> including RSS feeds</li>
+  <li>Hints on <a href="https://java-net.dev.java.net/pagedesign.html">project 
+    page HTML</a></li>
+  <li>Setting up project <a href="https://java-net.dev.java.net/ProjectPages.html#wiki">wiki 
+    pages</a></li>
+  <li>And places to go if <a href="https://java-net.dev.java.net/ProjectPages.html#feedback">you 
+    have questions</a>.</li>
+  <li><a href="http://www.markmail.org" style="TEXT-DECORATION: NONE"><img src="http://markmail.org/favicon.ico" width=16 height=16 align=bottom border=0></a> 
+    <a href="http://www.markmail.org">Markmail</a> is a free service for searching 
+    and analyzing email archives.</li>
+</ul>
+<p><a href="http://www.markmail.org">Markmail</a> offers several advantages:</p>
+<ol>
+  <li>It makes finding messages easier and faster.</li>
+  <li>It exposes analytics that make it possible to learn about each project and 
+    its contributors.</li>
+  <li>It helps reduce the amount of repeat questions on the lists.</li>
+  <li>It helps users be more successful with the project by giving them the 'background' 
+    of previous discussions.</li>
+</ol>
+<p>Remember that you will attract more new members and your project team will 
+  work more effectively if you, as the project owner, supply sufficient information 
+  about your project for visitors to your project space. Good luck with your new 
+  project! </p>
+<br>
+-->
