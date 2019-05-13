@@ -43,8 +43,8 @@ public class Main {
         System.out.println("java -jar stun.jar [options]");
         System.out.println("Options:");
         System.out.println("  -S: run as STUN server.");
-        System.out.println("  -server host: set the STUN server to query (default stun1.voiceeclipse.net).");
-        System.out.println("  -port number: set the port for the STUN serve (default 3478).");
+        System.out.println("  -server host: set the STUN server to query (default stun.l.google.com).");
+        System.out.println("  -port number: set the port for the STUN serve (default 19302).");
         System.out.println("  -remoteserver host: set the remote Shared Secret server address.");
         System.out.println("  -remoteport number: set the port for used by the Shared Secret serve (default 3478).");
         System.out.println("  -dns ip: use DNS descovery. The server argument contains the domain.");
