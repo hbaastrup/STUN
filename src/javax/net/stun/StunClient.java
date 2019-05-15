@@ -55,7 +55,6 @@ public class StunClient {
     private String serverAddress = "";
     private int serverPort = 3478;
 
-    private InetAddress localAddr = null;
     private List<InetAddress> localAddresses = null;
     private int localPort = 0;
 
@@ -359,8 +358,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
             discoveryInfo.setPublicIpAddress(mappedAddress.getAddress());
             discoveryInfo.setLocalIpAddresses(localAddresses);
             if (mappedAddress.getPort()==localPort && 
-            		(mappedAddress.getAddressAsString().equals(localAddr.getHostAddress()) ||
-            		(localAddresses!=null && localAddresses.contains(mappedAddress.getAddressAsString())))) {
+            	(localAddresses!=null && localAddresses.contains(mappedAddress.getAddressAsString()))) {
                 if (debug) System.out.println("Node is not natted.");
                 discoveryInfo.setNodeNated(false);
             }
@@ -561,7 +559,6 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
                 }
                 break;
             }
-            localAddr = Utils.getLocalAddress();
             localAddresses = Utils.getLocalAddresses();
             localPort = sock.getLocalPort();
         } finally {
