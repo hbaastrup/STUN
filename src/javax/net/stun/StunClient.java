@@ -29,6 +29,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLSocket;
@@ -55,6 +56,7 @@ public class StunClient {
     private int serverPort = 3478;
 
     private InetAddress localAddr = null;
+    private List<InetAddress> localAddresses = null;
     private int localPort = 0;
 
     private MessageAttribute mappedAddress = null;
@@ -203,7 +205,7 @@ public class StunClient {
     public void setServerPort(int arg0) {serverPort = arg0;}
 
     /**
-     * Do the binding process as descriped in RFC 3489:
+     * Do the binding process as described in RFC 3489:
      *  <pre> {@code
                      +--------+
                      |  Test  |
@@ -334,15 +336,14 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
                 return false;
             }
         }
-	MessageAttribute errorCode = header.getMessageAttribute(MessageAttribute.MessageAttributeType.ERROR_CODE);
+        MessageAttribute errorCode = header.getMessageAttribute(MessageAttribute.MessageAttributeType.ERROR_CODE);
         
         if (errorCode!=null) {
             if (debug) System.out.println("Got an error code from the STUN server");
             discoveryInfo.setErrorCode(errorCode);
             return false;
         }
-        //TODO: using  || ??????
-        //if (mappedAddress==null || changedAddress==null) {
+
         if (mappedAddress==null) {
             discoveryInfo.setError(700, "The server is sending an incomplete response (Mapped Address and Changed Address message attributes are missing). The client should not retry.");
             if (debug) System.out.println("Response does not contain a Mapped Address or Changed Address message attribute.");
@@ -356,8 +357,10 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
 
         if (useChangedAddress) {
             discoveryInfo.setPublicIpAddress(mappedAddress.getAddress());
-            discoveryInfo.setLocalIpAddress(localAddr);
-            if (mappedAddress.getPort()==localPort && mappedAddress.getAddressAsString().equals(localAddr.getHostAddress())) {
+            discoveryInfo.setLocalIpAddresses(localAddresses);
+            if (mappedAddress.getPort()==localPort && 
+            		(mappedAddress.getAddressAsString().equals(localAddr.getHostAddress()) ||
+            		(localAddresses!=null && localAddresses.contains(mappedAddress.getAddressAsString())))) {
                 if (debug) System.out.println("Node is not natted.");
                 discoveryInfo.setNodeNated(false);
             }
@@ -558,12 +561,8 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
                 }
                 break;
             }
-            //localAddr = sock.getLocalAddress();
-            //localAddr = InetAddress.getLocalHost();
-            localAddr = Utils.getLocalAddr();
-//    System.out.println(localAddr);
-//    System.out.println(localAddr.getLocalHost());
-//    System.out.println(localAddr.getHostAddress());
+            localAddr = Utils.getLocalAddress();
+            localAddresses = Utils.getLocalAddresses();
             localPort = sock.getLocalPort();
         } finally {
             sock.close();

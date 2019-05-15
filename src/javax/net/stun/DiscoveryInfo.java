@@ -19,11 +19,13 @@ package javax.net.stun;
 
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Contain the information that the clien discorvered from the {@link StunClient#binding} method.
+ * Contain the information that the client discovered from the {@link StunClient#binding} method.
  *
  * @author Henrik Baastrup
  */
@@ -45,7 +47,7 @@ public class DiscoveryInfo {
     private ConnectionScenario scenario = ConnectionScenario.NOT_KNOWN;
     private String publicIpAddress = "";
     private byte publicIpAddressAsBytes[];
-    private String localIpAddress = "";
+    private List<String> localIpAddresses = null;
     private boolean nodeNatted = false;
     private int errorCode = 0;
     private String errorMessage = null;
@@ -63,10 +65,14 @@ public class DiscoveryInfo {
         for (int i=0; i<publicIpAddressAsBytes.length; i++) retArr[i] = publicIpAddressAsBytes[i];
         return retArr;
     }
-
-    public void setLocalIpAddress(final String arg0) {localIpAddress = arg0;}
-    public void setLocalIpAddress(final InetAddress arg0) {localIpAddress = arg0.getHostAddress();}
-    public String getLocalIpAddress() {return localIpAddress;}
+    
+    public void setLocalIpAddresses(List<InetAddress> arg0) {
+    	if (arg0==null) return;
+    	if (localIpAddresses==null) localIpAddresses = new ArrayList<>();
+    	for(InetAddress addr : arg0)
+    		localIpAddresses.add(addr.getHostAddress());
+    }
+    public List<String> getLocalIpAddresses() {return localIpAddresses;}
     
     public void setNodeNated(final boolean arg0) {nodeNatted = arg0;}
     public boolean isNodeNated() {return nodeNatted;}
@@ -99,7 +105,7 @@ public class DiscoveryInfo {
         return toString(false);
     }
 
-    // To the explenation below see also http://en.wikipedia.org/wiki/NAT
+    // To the explanation below see also http://en.wikipedia.org/wiki/NAT
     public String toString(boolean details) {
         final StringBuilder str = new StringBuilder();
 
@@ -166,7 +172,11 @@ public class DiscoveryInfo {
                break;
         }
         str.append("  with public IP address: "+publicIpAddress+"\n");
-        str.append("  and local IP address: "+localIpAddress+"\n");
+        if (localIpAddresses!=null) {
+        	str.append("  and local IP addresses: \n");
+        	for (String addr : localIpAddresses)
+        		str.append("  - "+addr+"\n");
+        }
 
         return str.toString();
     }

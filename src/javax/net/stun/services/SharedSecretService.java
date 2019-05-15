@@ -152,7 +152,7 @@ public class SharedSecretService implements Runnable,UncaughtExceptionHandler {
         SSLContext sslContext = null;
         FileInputStream keyStoreIn = null;
         try {
-            if (address==null) address = Utils.getLocalAddr();
+            if (address==null) address = Utils.getLocalAddress();
 
             if (keyStoreFile!=null) {
                 KeyStore keyStore = KeyStore.getInstance("JKS");

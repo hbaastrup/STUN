@@ -174,7 +174,7 @@ public class Main {
                     ssService.startThread();
                 }
 
-                InetAddress localhost = Utils.getLocalAddr();
+                InetAddress localhost = Utils.getLocalAddress();
                 //If we are behind a NAT firewall we hav to find our own public address first
                 StunClient client = new StunClient("stun.xten.net");
                 DiscoveryInfo info = client.bindForRemoteAddressOnly(null);

@@ -13,8 +13,8 @@
 	<property name="dist.lib.dir" location="${dist.dir}/lib" />
 	<property name="dist.javadoc.dir" location="${dist.dir}/javadoc" />
 	
-	<property name="javac.source" value="1.6" />
-	<property name="javac.target" value="1.6" />
+	<property name="javac.source" value="1.7" />
+	<property name="javac.target" value="1.7" />
 	<property name="build.max.memmemory" value="512m" />
 	
 	<property name="src.dir" location="src" />

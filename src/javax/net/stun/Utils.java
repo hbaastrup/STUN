@@ -27,7 +27,9 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
  *
@@ -144,11 +146,11 @@ public class Utils {
     }
 
     /**
-     * Will try to find the local IP V4 address there is not the loopback address
+     * Will try to find the local IP V4 address there is not a loopback address
      * @return
      * @throws SocketException local IPV4 address.
      */
-    public static InetAddress getLocalAddr() throws SocketException {
+    public static InetAddress getLocalAddress() throws SocketException {
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface dev=interfaces.nextElement();
@@ -163,6 +165,29 @@ public class Utils {
             }
         }
         return null;
+    }
+    
+    /**
+     * Will try to find all the local IP V4 address there is not a loopback address
+     * @return
+     * @throws SocketException local IPV4 address.
+     */
+    public static List<InetAddress> getLocalAddresses() throws SocketException {
+    	ArrayList<InetAddress> addresses = new ArrayList<>();
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface dev=interfaces.nextElement();
+            String devName = dev.getDisplayName();
+            Enumeration<InetAddress> addrs = dev.getInetAddresses();
+            while (addrs.hasMoreElements()) {
+                InetAddress addr=addrs.nextElement();
+                if (addr instanceof Inet6Address) continue; //STUN might not be intresting with an IP V6 address
+                String addrStr = addr.getHostAddress();
+                if (addrStr.startsWith("127."))continue;
+                addresses.add(addr);
+            }
+        }
+        return addresses;
     }
 
     public static MessageHeader socketSendRecive(Socket sock, MessageHeader header) throws IOException {
