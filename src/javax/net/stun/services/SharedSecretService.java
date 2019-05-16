@@ -120,14 +120,14 @@ public class SharedSecretService implements Runnable,UncaughtExceptionHandler {
      */
     public boolean isRunning() {return running;}
 
-    public void startThread() {
+    public void start() {
         if (running) return;
         thread = new Thread(this, "Shared Secret Service Thread");
         thread.setUncaughtExceptionHandler(this);
         thread.start();
     }
 
-    public void stopThread() {
+    public void stop() {
         running = false;
         if (serverSocket!=null) {
             synchronized (serverSocket) {
