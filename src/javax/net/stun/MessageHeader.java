@@ -52,7 +52,7 @@ public class MessageHeader {
     ArrayList<MessageAttribute> messageAttributes = new ArrayList<MessageAttribute>();
     private boolean changePort = false;
     private boolean changeAddress = false;
-
+    
     public MessageHeader() {}
 
     public MessageHeader(final HeaderType type) {
@@ -275,4 +275,32 @@ public class MessageHeader {
         for (int i=0; i<hmacCalc.length; i++) if (hmacCalc[i]!=recievedHmac[i+4]) return 431;
         return 0;
     }
+
+    @Override
+    public String toString() {
+    	StringBuilder str = new StringBuilder("{");
+    	str.append("\"type\":\""+type+"\"\n");
+    	str.append(",\"tansactionId\":\""+bytesToString(tansactionId)+"\"\n");
+    	str.append(",\"attributes\":[");
+    	for (MessageAttribute attr: messageAttributes)
+    		str.append(""+attr.toString()+",");
+    	str.append("]\n");
+    	str.append("}");
+    	return str.toString();
+    }
+
+    
+    private static String byteToString(byte b) {
+    	if (b<10) return "0"+(b+'0');
+    	if (b<16) return "0"+(b-10+'A');
+    	return byteToString((byte)(b >> 8)) + byteToString((byte)(b & 0xF));
+    }
+    public static String bytesToString(byte[] bytes) {
+    	StringBuilder str = new StringBuilder();
+    	for (byte b : bytes)
+    		str.append(byteToString(b));
+    	return str.toString();
+    }
+    
+
 }

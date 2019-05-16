@@ -109,7 +109,11 @@ public class MessageAttribute {
     }
 
     public String getAddressAsString() {
-        if (type==MessageAttributeType.MAPPED_ADDRESS || type==MessageAttributeType.CHANGED_ADDRESS) {
+        if (type==MessageAttributeType.MAPPED_ADDRESS ||
+            type==MessageAttributeType.RESPONSE_ADDRESS ||
+            type==MessageAttributeType.CHANGED_ADDRESS ||
+            type==MessageAttributeType.SOURCE_ADDRESS ||
+        	type==MessageAttributeType.REFLECTED_FROM) {
             if (value.length<8) return null;
             byte addrBuf[] = new byte[4];
             for (int i=0; i<4; i++) addrBuf[i] = value[i+4];
@@ -258,6 +262,19 @@ public class MessageAttribute {
 
         return retBytes;
     }
+    
+    public int getErrorCode() {
+    	if (type!=MessageAttributeType.ERROR_CODE) return 0;
+    	if (value.length < 4) return 0;
+    	return value[2]*100 + value[3];
+    }
+    
+    public String getErrorString() {
+    	if (value.length<5) return "";
+    	byte[] errBytes = new byte[value.length-4];
+    	for (int i=0; i<value.length-4; i++) errBytes[i] = value[i+4];
+    	return new String(errBytes);
+    }
 
 
     public static MessageAttribute create(MessageAttributeType type, int arg0) {
@@ -328,6 +345,37 @@ public class MessageAttribute {
 
         }
         return new MessageAttribute(type, value);
+    }
+    
+    
+    @Override
+    public String toString() {
+    	String str = "{\"type\":\""+type.toString()+"\",";
+    	str += "\"value\":\""+valueToString()+"\"}";
+    	return str;
+    }
+
+    private String valueToString() {
+    	switch(type) {
+	    	case MAPPED_ADDRESS:
+	    	case RESPONSE_ADDRESS:
+	    	case SOURCE_ADDRESS:
+	    	case CHANGED_ADDRESS:
+	    	case REFLECTED_FROM:
+	    		if (getAddressAsString()==null) return "";
+	    		return getAddressAsString()+":"+getPort();
+	    	case USERNAME:
+	    		return getUsername();
+	    	case PASSWORD:
+	    		return MessageHeader.bytesToString(getPassword());
+	    	case ERROR_CODE:
+	    		return getErrorCode()+": "+getErrorCode();
+	    	case CHANGE_REQUEST:
+	    	case MESSAGE_INTEGRITY:
+	    	case UNKNOWN_ATTRIBUTES:
+    		default:
+    			return "";
+    	}
     }
 
     public static MessageAttribute create(MessageAttributeType type, Object arg0, Object arg1) {
