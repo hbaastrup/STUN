@@ -31,6 +31,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.stun.MessageAttribute;
 import javax.net.stun.MessageHeader;
+import javax.net.stun.MessageHeader.HeaderType;
 import javax.net.stun.Utils;
 
 //TODO: The Binding Service is not able to answer a client with a full NAT scenario as
@@ -79,7 +80,7 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
 
     public boolean isRunning() {return running;}
 
-    public void startThread() {
+    public void start() {
         if (running) return;
         thread = new Thread(this, "Binding Service Thread");
         thread.setUncaughtExceptionHandler(this);
@@ -93,7 +94,7 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
         thread.start();
     }
 
-    public void stopThread() {
+    public void stop() {
         running = false;
         thread.interrupt();
         synchronized (receiveSocket) {
@@ -110,7 +111,7 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
                 Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "  Using Shared Secret by argument");
             }
             if (sharedSecretServiceAddress!=null) {
-                Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "  Using Shred Secret with address: "+sharedSecretServiceAddress);
+                Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "  Using Shared Secret with address: "+sharedSecretServiceAddress);
             }
         }
         byte[] buf = new byte[0xffff+20];
@@ -151,14 +152,16 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
 
         try {
             MessageHeader receivedHeader = MessageHeader.create(receivedDatagramPacket.getData());
+            
+            if (receivedHeader.getType()!=HeaderType.BINDING_REQUEST) return; //If not Binding Request I will not response
 
-            MessageAttribute changeRequest = receivedHeader.getMessageAttribute(MessageAttribute.MessageAttributeType.CHANGE_REQUEST);
-            if (changeRequest==null) return; //If not a Change Request I will not response!
+            //MessageAttribute changeRequest = receivedHeader.getMessageAttribute(MessageAttribute.MessageAttributeType.CHANGE_REQUEST);
+            //if (changeRequest==null) return; //If not a Change Request I will not response!
 
             //Create return header.
             MessageHeader returnHeader = createResponse(receivedHeader, clientAddr, clientPort);
             if (returnHeader==null) return; //We will not response the alternative server should do that!
-            if (returnHeader.getChangeAddress()) {
+            if (returnHeader.changeAddress()) {
                 //TODO: We need to pass the response to an other server on an other address
                 //      alternateAddress and alternatePort
             }
@@ -173,13 +176,13 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
                 returnPort = responseAddress.getPort();
             }
             DatagramPacket out = new DatagramPacket(buffer, buffer.length, returnAddr, returnPort);
-            if (returnHeader.getChangePort()) {
+            if (returnHeader.changePort()) {
                 //Create a new socket to change origin port
                 alternativePortSocket = new DatagramSocket();
                 alternativePortSocket.send(out);
             }
             else {
-                //Use the same port we recived on
+                //Use the same port we received on
                 socket.send(out);
             }
         } catch (IOException ex) {
@@ -192,7 +195,7 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
     private MessageHeader createResponse(MessageHeader receivedHeader, InetAddress clientAddr, int clientPort) {
         MessageHeader returnHeader = new MessageHeader();
         byte password[] = controllMessageIntegrity(receivedHeader, returnHeader);
-        if (returnHeader.getType()!=MessageHeader.HeaderType.NOT_KNOWN) return returnHeader; //Failed Message Integrity check adn contain an error response!
+        if (returnHeader.getType()!=MessageHeader.HeaderType.NOT_KNOWN) return returnHeader; //Failed Message Integrity check and contain an error response!
 
         returnHeader = new MessageHeader(MessageHeader.HeaderType.BINDING_RESPONSE);
         returnHeader.setTransactionId(receivedHeader.getTransactionId());
@@ -221,13 +224,13 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
         InetAddress respAddr;
         int respPort;
         if (changeRequest!=null) {
-            if (changeRequest.isAddressChanged()) {
+            if (changeRequest.changeAddress()) {
                 if (alternateAddress==null) respAddr = publicAddress;
                 else respAddr = alternateAddress;
                 returnHeader.setChangeAddress(true);
             }
             else respAddr = publicAddress;
-            if (changeRequest.isPortChanged()) {
+            if (changeRequest.changePort()) {
                 if (alternatePort==0) respPort = localPort;
                 else respPort = alternatePort;
                 returnHeader.setChangePort(true);

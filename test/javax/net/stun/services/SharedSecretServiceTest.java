@@ -56,7 +56,7 @@ public class SharedSecretServiceTest {
         
         SharedSecretService instance = new SharedSecretService();
         instance.setKeyStore(keyStoreFile, "henriksp".toCharArray(), "henrikkp".toCharArray());
-        instance.startThread();
+        instance.start();
         try {
             System.out.println("Wait for the servcie thread to start");
             int count = 0;
@@ -74,7 +74,7 @@ public class SharedSecretServiceTest {
             assertTrue("The secret return error: "+secret.getErrorCode()+" ["+secret.getErrorMessage()+"]", secret.getErrorCode()==0);
         }
         finally {
-            instance.stopThread();
+            instance.stop();
         }
     }
 }

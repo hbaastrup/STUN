@@ -177,7 +177,7 @@ public class MessageAttribute {
         return true;
     }
 
-    public boolean isPortChanged() {
+    public boolean changePort() {
         if (type==MessageAttributeType.CHANGE_REQUEST) {
             if (value.length<4) return false;
             if ((value[3] & 2)==2) return true;
@@ -185,7 +185,7 @@ public class MessageAttribute {
         return false;
     }
 
-    public boolean isAddressChanged() {
+    public boolean changeAddress() {
         if (type==MessageAttributeType.CHANGE_REQUEST) {
             if (value.length<4) return false;
             if ((value[3] & 4)==4) return true;
@@ -371,6 +371,7 @@ public class MessageAttribute {
 	    	case ERROR_CODE:
 	    		return getErrorCode()+": "+getErrorCode();
 	    	case CHANGE_REQUEST:
+	    		return MessageHeader.byteToString((byte)(value[3] & 0x06));
 	    	case MESSAGE_INTEGRITY:
 	    	case UNKNOWN_ATTRIBUTES:
     		default:

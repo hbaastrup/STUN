@@ -76,7 +76,7 @@ public class SharedSecretService implements Runnable,UncaughtExceptionHandler {
 
     @Override
     protected void finalize() throws Throwable {
-        stopThread();
+        stop();
         super.finalize();
     }
     

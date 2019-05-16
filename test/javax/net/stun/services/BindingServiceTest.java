@@ -81,7 +81,7 @@ public class BindingServiceTest {
         BindingService bService = new BindingService(host, 0, null, 0, ssService);
 
         try {
-            ssService.startThread();
+            ssService.start();
             System.out.println("Wait for the Shared Secret Service thread to start");
             int count = 0;
             while (!ssService.isRunning()) {
@@ -91,7 +91,7 @@ public class BindingServiceTest {
             }
             System.out.println("Shared Secret Service thread started!");
 
-            bService.startThread();
+            bService.start();
             System.out.println("Wait for the Binding Service thread to start");
             count = 0;
             while (!bService.isRunning()) {
@@ -124,12 +124,12 @@ public class BindingServiceTest {
 
 
 
-            bService.stopThread();
+            bService.stop();
             Thread.sleep(1000);
             System.out.println("Stopped binding thread");
 
             bService = new BindingService(host, 0, null, 0, ssService.getAddress(), ssService.getPort());
-            bService.startThread();
+            bService.start();
             System.out.println("Wait for the Binding Service thread to re-start");
             count = 0;
             while (!bService.isRunning()) {
@@ -152,15 +152,15 @@ public class BindingServiceTest {
             System.out.println(info);
         }
         finally {
-            ssService.stopThread();
-            bService.stopThread();
+            ssService.stop();
+            bService.stop();
         }
     }
 
     public DiscoveryInfo doBinding(InetAddress serverAddr) throws Exception {
         BindingService instance = new BindingService(serverAddr, 0, null, 0);
         instance.setDebug(true);
-        instance.startThread();
+        instance.start();
         try {
             System.out.println("Wait for the servcie thread to start");
             int count = 0;
@@ -177,7 +177,7 @@ public class BindingServiceTest {
             return client.bindForRemoteAddressOnly(null);
         }
         finally {
-            instance.stopThread();
+            instance.stop();
             Thread.sleep(1000);
         }
     }

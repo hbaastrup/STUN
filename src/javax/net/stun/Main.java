@@ -171,7 +171,7 @@ public class Main {
                     ssService = new SharedSecretService(stunPort);
                     ssService.setDebug(debug);
                     ssService.setKeyStore(keyStoreFile, keyStorePassword.toCharArray(), keyPassword.toCharArray());
-                    ssService.startThread();
+                    ssService.start();
                 }
 
                 InetAddress localhost = Utils.getLocalAddress();
@@ -196,7 +196,7 @@ public class Main {
                     bService = new BindingService(localhost, stunPort, alternateAddress, alternatePort, ssService);
                 bService.setDebug(debug);
                 bService.setPublicAddress(remoteAddr);
-                bService.startThread();
+                bService.start();
 
                 //Wait for our services to start
                 boolean proceedOk = false;
@@ -218,8 +218,8 @@ public class Main {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InterruptedException ex) {
             } finally {
-                if (ssService!=null) ssService.stopThread();
-                if (bService!=null) bService.stopThread();
+                if (ssService!=null) ssService.stop();
+                if (bService!=null) bService.stop();
             }
         }
     }

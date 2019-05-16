@@ -19,6 +19,7 @@ package javax.net.stun;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -184,10 +185,10 @@ public class MessageHeader {
     }
 
     public void setChangePort(boolean arg0) {changePort = arg0;}
-    public boolean getChangePort() {return changePort;}
+    public boolean changePort() {return changePort;}
 
     public void setChangeAddress(boolean arg0) {changeAddress = arg0;}
-    public boolean getChangeAddress() {return changeAddress;}
+    public boolean changeAddress() {return changeAddress;}
 
     public byte[] toBytes() throws IOException {
         return toBytesExcept(null);
@@ -290,11 +291,15 @@ public class MessageHeader {
     }
 
     
-    private static String byteToString(byte b) {
-    	if (b<10) return "0"+(b+'0');
-    	if (b<16) return "0"+(b-10+'A');
-    	return byteToString((byte)(b >> 8)) + byteToString((byte)(b & 0xF));
+    public  static String byteToString(byte b) {
+    	char[] trans = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+  
+    	char[] retChars = new char[2];
+    	retChars[0] = trans[((b & 0xF0) >> 8)];
+    	retChars[1] = trans[(b & 0x0F)];
+    	return new String(retChars);
     }
+    
     public static String bytesToString(byte[] bytes) {
     	StringBuilder str = new StringBuilder();
     	for (byte b : bytes)

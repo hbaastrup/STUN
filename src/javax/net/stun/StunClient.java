@@ -17,6 +17,7 @@
  */
 package javax.net.stun;
 
+import javax.net.stun.MessageAttribute.MessageAttributeType;
 import javax.net.stun.dns.DClass;
 import javax.net.stun.dns.DMessage;
 import javax.net.stun.dns.DNSResolver;
@@ -386,6 +387,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
     private boolean test2(DiscoveryInfo discoveryInfo, SharedSecret sharedSecret) {
         MessageHeader header = new MessageHeader(MessageHeader.HeaderType.BINDING_REQUEST);
         header.genrateTransactionId();
+        header.addMessageAttribute(MessageAttribute.create(MessageAttributeType.CHANGE_REQUEST, 0x06)); // Change both address and port
         //byte hmac[] = setMessageAttributes(header, (byte)6, sharedSecret); // Change request = Change addaress and port
 
         bindingTestDone = DoneBindingTest.TEST2;
@@ -408,7 +410,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
             return false;
         }
 
-	MessageAttribute errorCode = header.getMessageAttribute(MessageAttribute.MessageAttributeType.ERROR_CODE);
+        MessageAttribute errorCode = header.getMessageAttribute(MessageAttribute.MessageAttributeType.ERROR_CODE);
 
         if (errorCode!=null) {
             if (debug) System.out.println("Got an error code from the STUN server");
@@ -438,6 +440,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
     private void test3(DiscoveryInfo discoveryInfo, SharedSecret sharedSecret) {
         MessageHeader header = new MessageHeader(MessageHeader.HeaderType.BINDING_REQUEST);
         header.genrateTransactionId();
+        header.addMessageAttribute(MessageAttribute.create(MessageAttributeType.CHANGE_REQUEST, 0x02)); // Change request only for the port
         //byte hmac[] = setMessageAttributes(header, (byte)2, sharedSecret); // Change request = Change port
 
         bindingTestDone = DoneBindingTest.TEST3;
@@ -460,7 +463,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
             return;
         }
 
-	MessageAttribute errorCode = header.getMessageAttribute(MessageAttribute.MessageAttributeType.ERROR_CODE);
+        MessageAttribute errorCode = header.getMessageAttribute(MessageAttribute.MessageAttributeType.ERROR_CODE);
 
         if (errorCode!=null) {
             if (debug) System.out.println("Got an error code from the STUN server");
