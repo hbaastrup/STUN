@@ -2,9 +2,72 @@ Test results
 =============
 
 Accanto Systems:
-Last test was: test
+Last test was: test 3
 Noded natted:
   Node is behind a Restricted Port NAT
   with public IP address: 93.63.252.189
   and local IP address: 192.168.226.6
-  
+ 
+
+NetScout 2019-05-17
+===================
+stun.mit.de=145.253.113.147
+
+
+STUN client by Henrik Baastrup Copyrigth (C) 2010
+
+May 17, 2019 9:34:48 AM javax.net.stun.StunClient test1
+INFO: TEST1_FIRST_RUN sent to stun.mit.de:3478: {"type":"BINDING_REQUEST"
+,"tansactionId":"000000000000000A0407000D02040704"
+,"attributes":[]
+}
+
+May 17, 2019 9:34:49 AM javax.net.stun.StunClient test1
+INFO: TEST1_FIRST_RUN received: {"type":"BINDING_RESPONSE"
+,"tansactionId":"000000000000000A0407000D02040704"
+,"attributes":[{"type":"MAPPED_ADDRESS","value":"93.51.195.116:7254"},{"type":"SOURCE_ADDRESS","value":"145.253.113.147:0"},{"type":"CHANGED_ADDRESS","value":"145.253.113.148:3479"},{"type":"UNKNOWN_ATTRIBUTES","value":"00010C060D030304"},{"type":"UNKNOWN_ATTRIBUTES","value":"060F060904010E0F020700000E090600"},]
+}
+
+Node is natted.
+
+May 17, 2019 9:34:51 AM javax.net.stun.StunClient test2
+INFO: TEST2 sent to stun.mit.de:3478: {"type":"BINDING_REQUEST"
+,"tansactionId":"000000000000000A0407040D00010A02"
+,"attributes":[{"type":"CHANGE_REQUEST","value":"06"},]
+}
+
+May 17, 2019 9:35:00 AM javax.net.stun.StunClient test2
+INFO: No response received - continue with Test I second run
+
+May 17, 2019 9:35:00 AM javax.net.stun.StunClient test1
+INFO: TEST1_SECOND_RUN sent to 145.253.113.148:3479: {"type":"BINDING_REQUEST"
+,"tansactionId":"000000000000000A04070F0C0907010C"
+,"attributes":[]
+}
+
+May 17, 2019 9:35:03 AM javax.net.stun.StunClient test1
+INFO: TEST1_SECOND_RUN received: {"type":"BINDING_RESPONSE"
+,"tansactionId":"000000000000000A04070F0C0907010C"
+,"attributes":[{"type":"MAPPED_ADDRESS","value":"93.51.195.116:44667"},{"type":"SOURCE_ADDRESS","value":"145.253.113.148:0"},{"type":"CHANGED_ADDRESS","value":"145.253.113.147:3478"},{"type":"UNKNOWN_ATTRIBUTES","value":"00010E0B0D030304"},{"type":"UNKNOWN_ATTRIBUTES","value":"060F060904010E0F020700000E090600"},]
+}
+
+May 17, 2019 9:35:05 AM javax.net.stun.StunClient test3
+INFO: TEST3 sent to stun.mit.de:3478: {"type":"BINDING_REQUEST"
+,"tansactionId":"000000000000000A0407090302010D06"
+,"attributes":[{"type":"CHANGE_REQUEST","value":"02"},]
+}
+
+Node is behind a port restricted NAT.
+May 17, 2019 9:35:14 AM javax.net.stun.StunClient test3
+INFO: No response received
+Last test was: test 3
+Noded natted:
+  Node is behind a Restricted Port NAT
+  with public IP address: 93.51.195.116
+  and local IP addresses: 
+  - 172.17.0.1
+  - 172.18.0.1
+  - 10.248.142.51
+  - 10.190.35.63
+
+

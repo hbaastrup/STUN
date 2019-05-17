@@ -48,7 +48,7 @@ public class Main {
         System.out.println("  -remoteserver host: set the remote Shared Secret server address.");
         System.out.println("  -remoteport number: set the port for used by the Shared Secret serve (default 3478).");
         System.out.println("  -dns ip: use DNS descovery. The server argument contains the domain.");
-        System.out.println("  -serveraddr host: set the servers address (default localhost)");
+        System.out.println("  -serveraddr host: set the services address (default localhost)");
         System.out.println("  -keystore file: path to key-store. If used the client will request a");
         System.out.println("                  Shared Secret. In server mode the Shared Secre service");
         System.out.println("                  is activated.");
@@ -155,7 +155,6 @@ public class Main {
                     System.setProperty("javax.net.ssl.keyStore", keyStoreFile.getAbsolutePath());
                     System.setProperty("javax.net.ssl.keyStoreType", "JKS");
                     System.setProperty("javax.net.ssl.keyStorePassword", keyStorePassword);
-                    //System.setProperty("javax.net.ssl.keyPassword", keyPassword);
                     secret = client.requestSharedSecret();
                     if (secret!=null) {
 	                    if (secret.hasError()) {

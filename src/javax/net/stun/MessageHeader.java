@@ -19,12 +19,11 @@ package javax.net.stun;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 /**
- * Used internaly by the @{link StunClient}
+ * Used internally by the @{link StunClient}
  * 
  * @author Henrik Baastrup
  */

@@ -154,19 +154,49 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
             MessageHeader receivedHeader = MessageHeader.create(receivedDatagramPacket.getData());
             if (debug) Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "Received request from "+clientAddr+":"+clientPort+" => "+receivedHeader);
             
-            if (receivedHeader.getType()!=HeaderType.BINDING_REQUEST) return; //If not Binding Request I will not response
+            MessageHeader returnHeader;
+            if (receivedHeader.getType()!=HeaderType.BINDING_RESPONSE) { // This message there has been forwarded to us, send it back to the client!
+            	returnHeader = receivedHeader;
+            	returnHeader.setChangeAddress(false); //Make sure we do not loop this message, but sent it back to the client
+            	MessageAttribute mappedAddress = receivedHeader.getMessageAttribute(MessageAttribute.MessageAttributeType.MAPPED_ADDRESS);
+            	if (mappedAddress==null) return; // We do not know to who to response
+            	clientAddr = mappedAddress.getAddress();
+            	clientPort = mappedAddress.getPort();
+            }
+            else if (receivedHeader.getType()==HeaderType.BINDING_REQUEST) {
+                returnHeader = createResponse(receivedHeader, clientAddr, clientPort);
+            }
+            else return; //If not Binding Request I will not response
 
             //MessageAttribute changeRequest = receivedHeader.getMessageAttribute(MessageAttribute.MessageAttributeType.CHANGE_REQUEST);
             //if (changeRequest==null) return; //If not a Change Request I will not response!
 
             //Create return header.
-            MessageHeader returnHeader = createResponse(receivedHeader, clientAddr, clientPort);
-            if (returnHeader==null) return; //We will not response the alternative server should do that!
+            if (returnHeader==null) return; //We will not response
+            
+            byte buffer[];
+            
             if (returnHeader.changeAddress()) {
-                //TODO: We need to pass the response to an other server on an other address
-                //      alternateAddress and alternatePort
+            	if (alternateAddress==null || alternatePort==0) {
+            		StringBuilder msg = new StringBuilder("A change address request was received");
+            		msg.append("\nAlternated address or port is not set => "+alternateAddress+":"+alternatePort);
+            		msg.append("\nThis server will wrongly response on the NIC and address the message was resived on.");
+            		Logger.getLogger(BindingService.class.getName()).log(Level.SEVERE, msg.toString());
+            	}
+            	else {
+	            	//TODO: to be tested
+	            	MessageAttribute responseAddress = receivedHeader.getMessageAttribute(MessageAttribute.MessageAttributeType.RESPONSE_ADDRESS);
+	            	if (responseAddress!=null) 
+	            		returnHeader.addMessageAttribute(responseAddress); //We need to have this with us for the forwarder even it is no applicable in a binding response
+	            	buffer = returnHeader.toBytes();
+	            	
+	            	DatagramPacket out = new DatagramPacket(buffer, buffer.length, alternateAddress, alternatePort);
+	                alternativePortSocket = new DatagramSocket();
+	                alternativePortSocket.send(out);
+	                return;
+            	}
             }
-            byte buffer[] = returnHeader.toBytes();
+            buffer = returnHeader.toBytes();
 
             //Does the client want the response on a different address or port?
             InetAddress returnAddr = clientAddr;
