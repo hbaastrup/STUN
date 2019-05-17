@@ -46,7 +46,7 @@ public class DiscoveryInfo {
 
     private ConnectionScenario scenario = ConnectionScenario.NOT_KNOWN;
     private String publicIpAddress = "";
-    private byte publicIpAddressAsBytes[];
+    private byte[] publicIpAddressAsBytes;
     private List<String> localIpAddresses = null;
     private boolean nodeNatted = false;
     private int errorCode = 0;
@@ -61,16 +61,17 @@ public class DiscoveryInfo {
     }
     public String getPublicIpAddress() {return publicIpAddress;}
     public byte[] getPublicIpAddressAsBytes() {
+    	if (publicIpAddressAsBytes==null) return null;
         byte retArr[] = new byte[publicIpAddressAsBytes.length];
         for (int i=0; i<publicIpAddressAsBytes.length; i++) retArr[i] = publicIpAddressAsBytes[i];
         return retArr;
     }
     
-    public void setLocalIpAddresses(List<InetAddress> arg0) {
+    public void setLocalIpAddresses(List<String> arg0) {
     	if (arg0==null) return;
     	if (localIpAddresses==null) localIpAddresses = new ArrayList<>();
-    	for(InetAddress addr : arg0)
-    		localIpAddresses.add(addr.getHostAddress());
+    	for(String addr : arg0)
+    		localIpAddresses.add(addr);
     }
     public List<String> getLocalIpAddresses() {return localIpAddresses;}
     

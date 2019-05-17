@@ -83,4 +83,14 @@ public class SharedSecret {
     public int getErrorCode() {return errorCode;}
 
     public String getErrorMessage() {return errorMessage;}
+    
+    public boolean hasError() {return errorCode!=0;}
+    
+    @Override
+    public String toString() {
+    	if (errorCode!=0)
+    		return "{\"errorCode\": "+errorCode+", \"message\":\""+errorMessage+"\"}";
+    	String passWD = Utils.bytesToString(password);
+    	return "{\"username\":\""+username+",\"password\":\""+passWD+"\"}";
+    }
 }

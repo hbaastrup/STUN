@@ -48,11 +48,11 @@ public class Main {
         System.out.println("  -remoteserver host: set the remote Shared Secret server address.");
         System.out.println("  -remoteport number: set the port for used by the Shared Secret serve (default 3478).");
         System.out.println("  -dns ip: use DNS descovery. The server argument contains the domain.");
+        System.out.println("  -serveraddr host: set the servers address (default localhost)");
         System.out.println("  -keystore file: path to key-store. If used the client will request a");
         System.out.println("                  Shared Secret. In server mode the Shared Secre service");
         System.out.println("                  is activated.");
         System.out.println("  -keystorepw password: password for key-store.");
-        System.out.println("  -keypw password: password for private key in key-store.");
         System.out.println("  -alternateaddr IP address: will start a server using the given IP address.");
         System.out.println("  -alternateport port: port to use with the alternate address.");
         System.out.println("  -debug: turn debug information on.");
@@ -62,17 +62,19 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //int stunPort = DEFAULT_STUN_PORT;
-        int stunPort = 19302;
+        int stunPort = DEFAULT_STUN_PORT;
         //String stunAddr = "stun1.voiceeclipse.net";
-        String stunAddr = "stun.l.google.com";
+        String stunAddr = "stun.mit.de";
+        //String stunAddr = "localhost";
+    	//int stunPort = 19302;
+        //String stunAddr = "stun1.l.google.com";
         String remoteServerAddr = null;
         int remoteServerPort = DEFAULT_STUN_PORT;
         String dnsServer = null;
         File keyStoreFile = null;
-        String keyStorePassword = "henriksp";
-        String keyPassword = "henrikkp";
+        String keyStorePassword = "henrikkp";
         String alternateAddr = null;
+        String serverAddr = "localhost";
         int alternatePort = 0;
         RunMode runAs = RunMode.CLIENT;
         boolean debug = false;
@@ -108,6 +110,10 @@ public class Main {
                 i++;
                 alternatePort = Integer.parseInt(args[i]);
             }
+            else if("-serveraddr".equals(args[i])) {
+                i++;
+                serverAddr = args[i];
+            }
             else if ("-dns".equals(args[i])) {
                 i++;
                 dnsServer = args[i];
@@ -120,15 +126,11 @@ public class Main {
                 i++;
                 keyStorePassword = args[i];
             }
-            else if("-keypw".equals(args[i])) {
-                i++;
-                keyPassword = args[i];
-            }
             else if ("-debug".equals(args[i])) {
                 debug = true;
             }
             else {
-                System.out.println("ERROR: Wrong argument! Try to use the -h argument");
+                System.out.println("ERROR: Wrong argument: "+args[i]+". Try to use the -h argument");
             }
         }
 
@@ -150,9 +152,20 @@ public class Main {
 
                 SharedSecret secret = null;
                 if (keyStoreFile!=null) {
-                    System.setProperty("javax.net.ssl.trustStore", keyStoreFile.getAbsolutePath());
-                    System.setProperty("javax.net.ssl.trustStoreType", "JKS");
-                    secret = client.getSharedSecret();
+                    System.setProperty("javax.net.ssl.keyStore", keyStoreFile.getAbsolutePath());
+                    System.setProperty("javax.net.ssl.keyStoreType", "JKS");
+                    System.setProperty("javax.net.ssl.keyStorePassword", keyStorePassword);
+                    //System.setProperty("javax.net.ssl.keyPassword", keyPassword);
+                    secret = client.requestSharedSecret();
+                    if (secret!=null) {
+	                    if (secret.hasError()) {
+	                    	System.out.println("The client tried to obtain a Shared Secret form server but failed: ");
+	                    	System.out.println("- "+ secret);
+	                    	System.out.println("The client will continue without Shared Secret");
+	                    }
+	                    else
+	                    	System.out.println(secret.toString());
+                    }
                 }
                 
                 DiscoveryInfo info = client.binding(secret);
@@ -166,28 +179,34 @@ public class Main {
             SharedSecretService ssService = null;
 
             try {
+                //InetAddress localhost = Utils.getLocalAddress();
+                InetAddress localhost = InetAddress.getByName(serverAddr);
+                
                 //If we have a key-store file we will support the Shared Secret services
                 if (keyStoreFile!=null) {
-                    ssService = new SharedSecretService(stunPort);
+                    ssService = new SharedSecretService(localhost, stunPort);
                     ssService.setDebug(debug);
-                    ssService.setKeyStore(keyStoreFile, keyStorePassword.toCharArray(), keyPassword.toCharArray());
+                    ssService.setKeyStore(keyStoreFile, keyStorePassword.toCharArray(), keyStorePassword.toCharArray());
                     ssService.start();
                 }
 
-                InetAddress localhost = Utils.getLocalAddress();
-                //If we are behind a NAT firewall we hav to find our own public address first
-                StunClient client = new StunClient("stun.xten.net");
+                //If we are behind a NAT firewall we have to find our own public address first
+                StunClient client = new StunClient(stunAddr, stunPort);
                 DiscoveryInfo info = client.bindForRemoteAddressOnly(null);
                 if (info.getErrorCode()!=0) {
                     System.out.println(info);
                     return;
                 }
-                InetAddress remoteAddr = InetAddress.getByAddress(info.getPublicIpAddressAsBytes());
+                byte[] remoteAddrBytes = info.getPublicIpAddressAsBytes();
+                InetAddress remoteAddr = null;
+                if (remoteAddrBytes!=null)
+                	remoteAddr = InetAddress.getByAddress(remoteAddrBytes);
 
                 InetAddress alternateAddress = null;
                 if (alternateAddr!=null) {
                     alternateAddress = InetAddress.getByName(alternateAddr);
                 }
+                
                 if (remoteServerAddr!=null) {
                     InetAddress ssAddr = InetAddress.getByName(remoteServerAddr);
                     bService = new BindingService(localhost, stunPort, alternateAddress, alternatePort, ssAddr, remoteServerPort);
@@ -195,7 +214,7 @@ public class Main {
                 else
                     bService = new BindingService(localhost, stunPort, alternateAddress, alternatePort, ssService);
                 bService.setDebug(debug);
-                bService.setPublicAddress(remoteAddr);
+                if (remoteAddr!=null) bService.setPublicAddress(remoteAddr);
                 bService.start();
 
                 //Wait for our services to start

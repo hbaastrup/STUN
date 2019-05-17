@@ -56,7 +56,7 @@ public class StunClient {
     private String serverAddress = "";
     private int serverPort = 3478;
 
-    private List<InetAddress> localAddresses = null;
+    private List<String> localAddresses = null;
     private int localPort = 0;
 
     private MessageAttribute mappedAddress = null;
@@ -139,24 +139,23 @@ public class StunClient {
      * Ask the STUN server for a shared secret if possible.
      * @return {@link SharedSecret} if the process succeed else null.
      */
-    public SharedSecret getSharedSecret() {
+    public SharedSecret requestSharedSecret() {
         SSLSocket sslSocket = null;
         MessageHeader header = null;
         SharedSecret sharedSecret = null;
 
         if (System.getProperty("javax.net.ssl.trustStore")==null)
             System.setProperty("javax.net.ssl.trustStore", "StunTest.jks");
-        if (System.getProperty("javax.net.ssl.keyStoreType")==null)
-            System.setProperty("javax.net.ssl.keyStoreType", "JKS");
+//        if (System.getProperty("javax.net.ssl.keyStoreType")==null)
+//            System.setProperty("javax.net.ssl.keyStoreType", "JKS");
         //System.setProperty("javax.net.debug", "help");
         //System.setProperty("javax.net.debug", "ssl");
         //System.setProperty("javax.net.debug", "ssl:record");
         //System.setProperty("javax.net.debug", "ssl:handshake");
+        if (debug)
+        	System.setProperty("javax.net.debug", "all");
 
         try {
-            //sock = new Socket(serverAddress, serverPort);
-            //sock.setSoTimeout(9500);
-
             SSLSocketFactory sslFactory = (SSLSocketFactory)SSLSocketFactory.getDefault();
             sslSocket = (SSLSocket)sslFactory.createSocket(serverAddress, serverPort);
             //sslSocket = (SSLSocket)sslFactory.createSocket(sock, serverAddress, serverPort, true);
@@ -289,7 +288,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
     private boolean test1(DiscoveryInfo discoveryInfo, SharedSecret sharedSecret, boolean useChangedAddress) {
         MessageHeader header = new MessageHeader(MessageHeader.HeaderType.BINDING_REQUEST);
         header.genrateTransactionId();
-        //byte hmac[] = setMessageAttributes(header, (byte)0, sharedSecret); // Change request = Same address and same port
+        byte hmac[] = setMessageAttributes4SharedSecret(header, (byte)0, sharedSecret); // Change request = Same address and same port
 
         String addr = serverAddress;
         int port = serverPort;
@@ -307,9 +306,11 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
         else bindingTestDone = DoneBindingTest.TEST1_SECOND_RUN;
 
         try {
+        	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, bindingTestDone.toString()+" sent to "+addr+":"+port+": "+header.toString());
             byte buffer[] = sendReceive(header, addr, port);
 
             header = MessageHeader.create(buffer);
+        	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, bindingTestDone.toString()+" received: "+header.toString());
         } catch (SocketTimeoutException ex) {
             if (useChangedAddress) {
                 if (debug) System.out.println("Node is not capable of UDP communication.");
@@ -388,16 +389,21 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
         MessageHeader header = new MessageHeader(MessageHeader.HeaderType.BINDING_REQUEST);
         header.genrateTransactionId();
         header.addMessageAttribute(MessageAttribute.create(MessageAttributeType.CHANGE_REQUEST, 0x06)); // Change both address and port
-        //byte hmac[] = setMessageAttributes(header, (byte)6, sharedSecret); // Change request = Change addaress and port
+        //TODO: Below - Eventually tell the STUN server where we want the response host:port
+        //header.addMessageAttribute(MessageAttribute.create(MessageAttributeType.CHANGED_ADDRESS, InetAddress.getByName("return.host"), returnPort)); // Tell the addres and port we want the response on
+        byte hmac[] = setMessageAttributes4SharedSecret(header, (byte)6, sharedSecret); // Change request = Change addaress and port
 
         bindingTestDone = DoneBindingTest.TEST2;
 
         try {
+        	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, bindingTestDone.toString()+" sent to "+serverAddress+":"+serverPort+": "+header.toString());
             byte buffer[] = sendReceive(header, serverAddress, serverPort);
 
             header = MessageHeader.create(buffer);
+        	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, bindingTestDone.toString()+" received: "+header.toString());
         } catch (SocketTimeoutException ex) {
             if (discoveryInfo.isNodeNated()) {
+            	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, "No response received - continue with Test I second run");
                 return true;
             } else {
                 if (debug) System.out.println("Node is behind a symmetric UDP firewall.");
@@ -441,15 +447,18 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
         MessageHeader header = new MessageHeader(MessageHeader.HeaderType.BINDING_REQUEST);
         header.genrateTransactionId();
         header.addMessageAttribute(MessageAttribute.create(MessageAttributeType.CHANGE_REQUEST, 0x02)); // Change request only for the port
-        //byte hmac[] = setMessageAttributes(header, (byte)2, sharedSecret); // Change request = Change port
+        byte hmac[] = setMessageAttributes4SharedSecret(header, (byte)2, sharedSecret); // Change request = Change port
 
         bindingTestDone = DoneBindingTest.TEST3;
         
         try {
+        	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, bindingTestDone.toString()+" sent to "+serverAddress+":"+serverPort+": "+header.toString());
             byte buffer[] = sendReceive(header, serverAddress, serverPort);
 
             header = MessageHeader.create(buffer);
+        	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, bindingTestDone.toString()+" received: "+header.toString());
         } catch (SocketTimeoutException ex) {
+        	if (debug)  Logger.getLogger(StunClient.class.getName()).log(Level.INFO, "No response received");
             if (discoveryInfo.isNodeNated()) {
                 if (debug) System.out.println("Node is behind a port restricted NAT.");
                 discoveryInfo.setScenario(DiscoveryInfo.ConnectionScenario.RESTRICTED_PORT_NAT);
@@ -482,9 +491,8 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
         }
     }
 
-    private byte[] setMessageAttributes(MessageHeader header, byte changeRequest, SharedSecret sharedSecret) {
-        MessageAttribute changeRequestAttr = MessageAttribute.create(MessageAttribute.MessageAttributeType.CHANGE_REQUEST, (int)changeRequest);
-        header.addMessageAttribute(changeRequestAttr);
+    private byte[] setMessageAttributes4SharedSecret(MessageHeader header, byte changeRequest, SharedSecret sharedSecret) {
+    	if (sharedSecret==null || sharedSecret.getErrorCode()!=0) return null;
         byte hmac[] = null;
         if (sharedSecret!=null) {
             if (sharedSecret.getUsername()!=null) {
@@ -507,7 +515,7 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
     }
     
     private boolean controlMessageIntegrity(MessageHeader header, SharedSecret sharedSecret) {
-        if (sharedSecret==null) return true;
+        if (sharedSecret==null || sharedSecret.hasError()) return true;
         if (header.integrityCheck(sharedSecret.getPassword())!=0) return false;
 
         return true;
@@ -527,8 +535,8 @@ NAT     <--- / IP \<-----|  Test  |<--- /Resp\                Open
         switch (bindingTestDone) {
             case TEST1_FIRST_RUN: return "test 1 first run";
             case TEST1_SECOND_RUN: return "test 1 second run";
-            case TEST2: return "test2";
-            case TEST3: return "test";
+            case TEST2: return "test 2";
+            case TEST3: return "test 3";
         }
         return "no test!";
     }

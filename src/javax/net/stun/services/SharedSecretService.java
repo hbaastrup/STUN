@@ -138,21 +138,22 @@ public class SharedSecretService implements Runnable,UncaughtExceptionHandler {
     }
 
     public void run() {
-        if (debug) {
-            Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "Service thread start with following parameters:");
-            Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "  Listein on port: "+port);
-            if (keyStoreFile!=null) {
-                Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "  Using the key-store file: "+keyStoreFile.getAbsolutePath());
-            }
-            else {
-                Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "  With no key-store file!");
-            }
-        }
-        running = true;
         SSLContext sslContext = null;
         FileInputStream keyStoreIn = null;
         try {
             if (address==null) address = Utils.getLocalAddress();
+	        if (debug) {
+	        	StringBuilder logStr = new StringBuilder("\nShared-Secret-Service starts with following parameters:");
+	        	logStr.append("\n- Listein on: "+address.getHostName()+":"+port+ " (IP/TCP)");
+	            if (keyStoreFile!=null) {
+	            	logStr.append("\n- Using the key-store file: "+keyStoreFile.getAbsolutePath());
+	            }
+	            else {
+	            	logStr.append("\n- With no key-store file!");
+	            }
+	            Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, logStr.toString());
+	        }
+	        running = true;
 
             if (keyStoreFile!=null) {
                 KeyStore keyStore = KeyStore.getInstance("JKS");
@@ -250,10 +251,10 @@ public class SharedSecretService implements Runnable,UncaughtExceptionHandler {
 
 
     private void read(Socket sock) {
-        if (debug) {
-            InetAddress clientAddr = sock.getInetAddress();
-            Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "Recived a connect from: "+clientAddr);
-        }
+        InetAddress clientAddr = sock.getInetAddress();
+        int clientPort = sock.getPort();
+        if (debug) Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "Recived a connect from: "+clientAddr+" on "+clientPort);
+
         InputStream in = null;
         OutputStream out = null;
         try {
@@ -282,12 +283,14 @@ public class SharedSecretService implements Runnable,UncaughtExceptionHandler {
             for (int i=0; i<length; i++) headBuffer[i+20] = buffer[i];
 
             MessageHeader recHeader = MessageHeader.create(headBuffer);
+            if (debug) Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "Received request from "+clientAddr+":"+clientPort+" => "+recHeader);
             MessageHeader retHeader;
             if (recHeader.getType()!=MessageHeader.HeaderType.SHARED_SECRET_REQUEST && recHeader.getType()!=MessageHeader.HeaderType.SHARED_SECRET_VERIFY_REQUEST) {
                 retHeader = new MessageHeader(MessageHeader.HeaderType.SHARED_SECRET_ERROR_RESPONSE);
                 retHeader.setTransactionId(recHeader.getTransactionId());
                 MessageAttribute errorCode = MessageAttribute.create(MessageAttribute.MessageAttributeType.ERROR_CODE, Utils.createErrorString(400), 400);
                 retHeader.addMessageAttribute(errorCode);
+                if (debug) Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "Responding to "+clientAddr+":"+clientPort+" with => "+retHeader);
                 out.write(retHeader.toBytes());
                 return;
             }
@@ -330,6 +333,7 @@ public class SharedSecretService implements Runnable,UncaughtExceptionHandler {
                 attr = MessageAttribute.create(MessageAttribute.MessageAttributeType.PASSWORD, userHolder.password, 0);
                 retHeader.addMessageAttribute(attr);
             }
+            if (debug) Logger.getLogger(SharedSecretService.class.getName()).log(Level.INFO, "Responding to "+clientAddr+":"+clientPort+" with => "+retHeader);
             out.write(retHeader.toBytes());
         } catch (IOException ex) {
             Logger.getLogger(SharedSecretService.class.getName()).log(Level.SEVERE, null, ex);

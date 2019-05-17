@@ -69,7 +69,7 @@ public class SharedSecretServiceTest {
             Thread.sleep(5000);
 
             StunClient client = new StunClient("127.0.0.1");
-            SharedSecret secret = client.getSharedSecret();
+            SharedSecret secret = client.requestSharedSecret();
             assertNotNull("No secret was shared",secret);
             assertTrue("The secret return error: "+secret.getErrorCode()+" ["+secret.getErrorMessage()+"]", secret.getErrorCode()==0);
         }

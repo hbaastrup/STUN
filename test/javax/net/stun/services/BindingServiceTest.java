@@ -106,7 +106,7 @@ public class BindingServiceTest {
             StunClient client = new StunClient(addr);
 
             System.out.println("Get secret");
-            SharedSecret secret = client.getSharedSecret();
+            SharedSecret secret = client.requestSharedSecret();
             assertNotNull("No secret was shared",secret);
             assertTrue("The secret return error: "+secret.getErrorCode()+" ["+secret.getErrorMessage()+"]", secret.getErrorCode()==0);
 

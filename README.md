@@ -100,4 +100,5 @@ finally {
 ```
 **NOTE:** If you plan to make a server there support Shared Secret, you need a key-store containg a certificate for your server. This certificate can either be signed by a CA or a self signed certificate. In any case all the clients there connect to your server needs the certificate of the signer. The reason for this is that the Shared Secret is obtained over SSL.  
 You can use the Java [keytool](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html) program to create a key-store. If you only need a self signed certificate you can distribute this key-store with all you clients.  
-The project comes with a self signed key-store file StunTest.jks with the key-store password "henriksp" and the key password "henrikkp".
+The project comes with a self signed key-store file StunTest.jks with the key-store password "henrikkp" and the key password "henrikkp".  
+

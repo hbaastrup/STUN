@@ -104,15 +104,17 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
 
     public void run() {
         if (debug) {
-            Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "Service thread start with following parameters:");
-            Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "  Servic address: "+localAddress+":"+localPort);
-            Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "  Alternative servic address: "+alternateAddress+":"+alternatePort);
+        	StringBuilder logStr = new StringBuilder("\nBinding-Service starts with following parameters:");
+        	logStr.append("\n- Servic address: "+localAddress+":"+localPort);
+        	logStr.append("\n- Public address: "+publicAddress.getHostAddress());
+        	logStr.append("\n- Alternative servic address: "+alternateAddress+":"+alternatePort);
             if (sharedSecretService!=null) {
-                Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "  Using Shared Secret by argument");
+            	logStr.append("\n- Using Shared Secret by argument");
             }
             if (sharedSecretServiceAddress!=null) {
-                Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "  Using Shared Secret with address: "+sharedSecretServiceAddress);
+            	logStr.append("\n- Using Shared Secret with address: "+sharedSecretServiceAddress);
             }
+            Logger.getLogger(BindingService.class.getName()).log(Level.INFO, logStr.toString());
         }
         byte[] buf = new byte[0xffff+20];
         DatagramPacket recDatagramPacket = new DatagramPacket(buf, buf.length);
@@ -145,13 +147,12 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
     private void response(DatagramSocket socket, DatagramPacket receivedDatagramPacket) {
         InetAddress clientAddr = receivedDatagramPacket.getAddress();
         int clientPort = receivedDatagramPacket.getPort();
-        if (debug) {
-            Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "Recived request from: "+clientAddr+":"+clientPort);
-        }
+        
         DatagramSocket alternativePortSocket = null;
 
         try {
             MessageHeader receivedHeader = MessageHeader.create(receivedDatagramPacket.getData());
+            if (debug) Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "Received request from "+clientAddr+":"+clientPort+" => "+receivedHeader);
             
             if (receivedHeader.getType()!=HeaderType.BINDING_REQUEST) return; //If not Binding Request I will not response
 
@@ -175,6 +176,7 @@ public class BindingService implements Runnable,UncaughtExceptionHandler {
                 returnAddr = responseAddress.getAddress();
                 returnPort = responseAddress.getPort();
             }
+            if (debug) Logger.getLogger(BindingService.class.getName()).log(Level.INFO, "Responding to "+returnAddr+":"+returnPort+" with => "+returnHeader);
             DatagramPacket out = new DatagramPacket(buffer, buffer.length, returnAddr, returnPort);
             if (returnHeader.changePort()) {
                 //Create a new socket to change origin port

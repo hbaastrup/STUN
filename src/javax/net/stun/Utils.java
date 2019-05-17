@@ -172,8 +172,8 @@ public class Utils {
      * @return
      * @throws SocketException local IPV4 address.
      */
-    public static List<InetAddress> getLocalAddresses() throws SocketException {
-    	ArrayList<InetAddress> addresses = new ArrayList<>();
+    public static List<String> getLocalAddresses() throws SocketException {
+    	ArrayList<String> addresses = new ArrayList<>();
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface dev=interfaces.nextElement();
@@ -181,10 +181,9 @@ public class Utils {
             Enumeration<InetAddress> addrs = dev.getInetAddresses();
             while (addrs.hasMoreElements()) {
                 InetAddress addr=addrs.nextElement();
-                if (addr instanceof Inet6Address) continue; //STUN might not be intresting with an IP V6 address
+                if (addr instanceof Inet6Address) continue; //STUN might not be interesting with an IP V6 address
                 String addrStr = addr.getHostAddress();
-                if (addrStr.startsWith("127."))continue;
-                addresses.add(addr);
+                addresses.add(addrStr);
             }
         }
         return addresses;
@@ -235,4 +234,21 @@ public class Utils {
         }
         return MessageHeader.create(message);
     }
+    
+    public  static String byteToString(byte b) {
+    	char[] trans = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+  
+    	char[] retChars = new char[2];
+    	retChars[0] = trans[((b & 0xF0) >> 8)];
+    	retChars[1] = trans[(b & 0x0F)];
+    	return new String(retChars);
+    }
+    
+    public static String bytesToString(byte[] bytes) {
+    	StringBuilder str = new StringBuilder();
+    	for (byte b : bytes)
+    		str.append(byteToString(b));
+    	return str.toString();
+    }
+
 }

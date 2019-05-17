@@ -281,7 +281,7 @@ public class MessageHeader {
     public String toString() {
     	StringBuilder str = new StringBuilder("{");
     	str.append("\"type\":\""+type+"\"\n");
-    	str.append(",\"tansactionId\":\""+bytesToString(tansactionId)+"\"\n");
+    	str.append(",\"tansactionId\":\""+Utils.bytesToString(tansactionId)+"\"\n");
     	str.append(",\"attributes\":[");
     	for (MessageAttribute attr: messageAttributes)
     		str.append(""+attr.toString()+",");
@@ -291,21 +291,6 @@ public class MessageHeader {
     }
 
     
-    public  static String byteToString(byte b) {
-    	char[] trans = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-  
-    	char[] retChars = new char[2];
-    	retChars[0] = trans[((b & 0xF0) >> 8)];
-    	retChars[1] = trans[(b & 0x0F)];
-    	return new String(retChars);
-    }
-    
-    public static String bytesToString(byte[] bytes) {
-    	StringBuilder str = new StringBuilder();
-    	for (byte b : bytes)
-    		str.append(byteToString(b));
-    	return str.toString();
-    }
     
 
 }

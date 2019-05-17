@@ -367,13 +367,15 @@ public class MessageAttribute {
 	    	case USERNAME:
 	    		return getUsername();
 	    	case PASSWORD:
-	    		return MessageHeader.bytesToString(getPassword());
+	    		return Utils.bytesToString(getPassword());
 	    	case ERROR_CODE:
 	    		return getErrorCode()+": "+getErrorCode();
 	    	case CHANGE_REQUEST:
-	    		return MessageHeader.byteToString((byte)(value[3] & 0x06));
-	    	case MESSAGE_INTEGRITY:
+	    		if (value.length<4) return "";
+	    		return Utils.byteToString((byte)(value[3] & 0x06));
 	    	case UNKNOWN_ATTRIBUTES:
+	    		return Utils.bytesToString(value);
+	    	case MESSAGE_INTEGRITY:
     		default:
     			return "";
     	}
